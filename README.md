@@ -1,6 +1,6 @@
 #KAITO-cell-MyOS
 
-This is a my project for study OS.
+This is a my project for studying OS.
 
 #DEMO
 
