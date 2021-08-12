@@ -1,6 +1,7 @@
 ; haribote-ipl
 ; TAB=4
 
+CYLS	EQU		10				;どこまで読み込むか
 		ORG		0x7c00			; このプログラムがどこに読み込まれるのか
 
 ; 以下は標準的なFAT12フォーマットフロッピーディスクのための記述
@@ -58,18 +59,25 @@ retry:
 		INT		0x13			;ドライブのリセット
 		JMP 	retry
 next:
-		MOV		AX,ES
+		MOV		AX,ES			;アドレスを0x200進める
 		ADD		AX,0x0020
-		MOV		ES,AX
-		ADD		CL,1
-		CMP		CL,18
+		MOV		ES,AX			;ADD ES,0x020という命令がないためこうなる
+		ADD		CL,1			;CLに1を足す
+		CMP		CL,18			;CLと18を比較
+		JBE		readloop		;CL <= 18だったらreadloopへ
+		MOV		CL,1
+		ADD		DH,1
+		CMP		DH,2			;DH < 2だったらreadloopへ
 		JBE		readloop
+		MOV		DH,0
+		ADD		CH,1
+		CMP		CH,CYLS			;CH < CYLSだったらreakloopへ
+		JB		readloop
 
 ; 読み終わったけどとりあえずやることないので寝る
 
-fin:
-		HLT						; 何かあるまでCPUを停止させる
-		JMP		fin				; 無限ループ
+		MOV		[0x0ff0],CH		;IPLがどこまで読んだのかメモ
+		JMP		0xc200
 
 error:
 		MOV		SI,msg
